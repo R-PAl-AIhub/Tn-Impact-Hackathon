@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PPE detection architecture</title>
+<style>
+  :root { --bg:#ffffff; --card:#f4f5f2; --line:#c9cbc5; --ink:#1d272d; --ink2:#46525a; --muted:#6a757c;
+          --chip:#ffffff; --safety:#ffc20e; --signal:#c8102e; --ok:#2e7d32; --fe:#2a78d6; --be:#1d272d; --pk:#6a757c; }
+  body[data-theme="dark"] { --bg:#0d1117; --card:#161b22; --line:#30363d; --ink:#eef0ec; --ink2:#c2c8c4; --muted:#949d9a;
+          --chip:#0d1117; --signal:#ff5a6b; --ok:#6cc070; --fe:#3987e5; --be:#c2c8c4; --pk:#949d9a; }
+  html, body { margin:0; background:var(--bg); }
+  svg { display:block; font-family: Inter, "Segoe UI", sans-serif; }
+  .t{fill:var(--ink)} .t2{fill:var(--ink2)} .m{fill:var(--muted)}
+  .card{fill:var(--card); stroke:var(--line)} .chip{fill:var(--chip); stroke:var(--line)}
+  .w{stroke:var(--ink2); stroke-width:1.6; fill:none} .wd{stroke:var(--muted); stroke-width:1.5; fill:none; stroke-dasharray:6 5}
+  .mono{font-family: "DejaVu Sans Mono", Menlo, monospace}
+</style>
+</head>
+<body>
+<svg id="diagram" width="1240" height="760" viewBox="0 0 1240 760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink2)"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker>
+    <pattern id="haz" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" style="fill:var(--safety)"/><rect x="7" width="7" height="14" fill="#141414"/></pattern>
+  </defs>
+
+  <!-- ===== cameras ===== -->
+  <g transform="translate(20,60)">
+    <rect width="170" height="250" rx="12" class="card"/>
+    <text x="18" y="32" class="t" font-size="16" font-weight="700">Site cameras</text>
+    <text x="18" y="52" class="m" font-size="12">webcam, USB, CCTV</text>
+    <g transform="translate(18,74)">
+      <rect width="134" height="40" rx="8" class="chip"/><circle cx="20" cy="20" r="7" style="fill:var(--signal)"/>
+      <text x="36" y="25" class="t" font-size="13" font-weight="600">Camera 1</text>
+    </g>
+    <g transform="translate(18,124)">
+      <rect width="134" height="40" rx="8" class="chip"/><circle cx="20" cy="20" r="7" style="fill:var(--muted)"/>
+      <text x="36" y="25" class="t2" font-size="13">Cameras 2–4</text>
+    </g>
+    <text x="18" y="196" class="m" font-size="12">Dashboard shows four</text>
+    <text x="18" y="213" class="m" font-size="12">slots; Camera 1 is</text>
+    <text x="18" y="230" class="m" font-size="12">analysed.</text>
+  </g>
+  <path d="M190 180 H226" class="w" marker-end="url(#a)"/>
+
+  <!-- ===== React frontend ===== -->
+  <g transform="translate(232,40)">
+    <rect width="330" height="430" rx="12" class="card"/>
+    <rect width="330" height="5" rx="2.5" style="fill:var(--fe)"/>
+    <text x="20" y="34" class="t" font-size="17" font-weight="700">React frontend</text>
+    <text x="20" y="54" class="m mono" font-size="11.5">frontend/src/Camera.jsx</text>
+    <g transform="translate(20,72)">
+      <rect width="290" height="58" rx="9" class="chip"/>
+      <text x="14" y="24" class="t" font-size="13.5" font-weight="600">Capture 1 frame per second</text>
+      <text x="14" y="44" class="t2" font-size="12.5">canvas → JPEG (quality 0.8)</text>
+    </g>
+    <g transform="translate(20,142)">
+      <rect width="290" height="58" rx="9" class="chip"/>
+      <text x="14" y="24" class="t" font-size="13.5" font-weight="600">Show live counts</text>
+      <text x="14" y="44" class="t2" font-size="12.5">people · no helmet · no vest</text>
+    </g>
+    <g transform="translate(20,214)">
+      <rect width="290" height="196" rx="9" class="chip"/>
+      <rect x="0" y="0" width="290" height="8" rx="4" fill="url(#haz)"/>
+      <text x="14" y="34" class="t" font-size="13.5" font-weight="600">Violation state manager</text>
+      <circle cx="22" cy="62" r="5" style="fill:var(--signal)"/>
+      <text x="36" y="66" class="t2" font-size="12.5">New violation: keep the first frame,</text>
+      <text x="36" y="83" class="t2" font-size="12.5">start a timer</text>
+      <circle cx="22" cy="110" r="5" style="fill:var(--safety)"/>
+      <text x="36" y="114" class="t2" font-size="12.5">Still there after 15 s: download</text>
+      <text x="36" y="131" class="t2 mono" font-size="11">violation_report_&lt;time&gt;.jpg</text>
+      <circle cx="22" cy="158" r="5" style="fill:var(--ok)"/>
+      <text x="36" y="162" class="t2" font-size="12.5">Resolved: clear the evidence</text>
+      <text x="36" y="179" class="t2" font-size="12.5">and reset the timer</text>
+    </g>
+  </g>
+
+  <!-- request / response -->
+  <path d="M562 132 H648" class="w" marker-end="url(#a)"/>
+  <text x="570" y="106" class="t2 mono" font-size="11.5">POST</text>
+  <text x="570" y="122" class="t2 mono" font-size="11.5">/analyse</text>
+  <text x="570" y="152" class="m" font-size="11.5">JPEG frame</text>
+  <path d="M648 392 H568" class="wd" marker-end="url(#b)"/>
+  <text x="574" y="382" class="t2" font-size="11.5">JSON counts</text>
+
+  <!-- ===== FastAPI backend ===== -->
+  <g transform="translate(654,40)">
+    <rect width="566" height="430" rx="12" class="card"/>
+    <rect width="566" height="5" rx="2.5" style="fill:var(--be)"/>
+    <text x="20" y="34" class="t" font-size="17" font-weight="700">FastAPI backend</text>
+    <text x="20" y="54" class="m mono" font-size="11.5">backend/main.py</text>
+
+    <g transform="translate(20,72)">
+      <rect width="160" height="66" rx="9" class="chip"/>
+      <text x="14" y="26" class="t" font-size="13.5" font-weight="600">Decode frame</text>
+      <text x="14" y="46" class="t2 mono" font-size="11.5">cv2.imdecode</text>
+    </g>
+    <path d="M180 105 H204" class="w" marker-end="url(#a)"/>
+    <g transform="translate(208,72)">
+      <rect width="168" height="66" rx="9" class="chip"/>
+      <text x="14" y="26" class="t" font-size="13.5" font-weight="600">PPEDetector</text>
+      <text x="14" y="46" class="t2" font-size="12">YOLO26n · conf 0.20</text>
+    </g>
+    <path d="M376 105 H400" class="w" marker-end="url(#a)"/>
+    <g transform="translate(404,72)">
+      <rect width="142" height="66" rx="9" class="chip"/>
+      <text x="14" y="26" class="t" font-size="13.5" font-weight="600">Split by class</text>
+      <text x="14" y="46" class="t2 mono" font-size="11">0 · 2 · 6 · 7</text>
+    </g>
+
+    <path d="M475 138 V160 H120 V178" class="w" marker-end="url(#a)"/>
+    <g transform="translate(20,182)">
+      <rect width="526" height="128" rx="9" class="chip"/>
+      <text x="14" y="26" class="t" font-size="13.5" font-weight="600">For each detected person</text>
+      <text x="14" y="54" class="t" font-size="12.5" font-weight="600">Helmet</text>
+      <text x="80" y="54" class="t2" font-size="12.5">a helmet centre lies inside the person box, in its upper half,</text>
+      <text x="80" y="72" class="t2" font-size="12.5">and no <tspan class="mono" font-size="11.5">no_helmet</tspan> box overlaps the person</text>
+      <text x="14" y="100" class="t" font-size="12.5" font-weight="600">Vest</text>
+      <text x="80" y="100" class="t2" font-size="12.5">any vest box overlaps the person box</text>
+      <text x="420" y="118" class="m mono" font-size="10.5">backend/utils.py</text>
+    </g>
+    <path d="M140 310 V334" class="w" marker-end="url(#a)"/>
+    <path d="M420 310 V334" class="w" marker-end="url(#a)"/>
+    <g transform="translate(20,338)">
+      <rect width="256" height="80" rx="9" class="chip"/>
+      <text x="14" y="26" class="t" font-size="13.5" font-weight="600">RiskEngine per person</text>
+      <text x="14" y="46" class="t2" font-size="12">deque of (violation, Unix time)</text>
+      <text x="14" y="63" class="t2" font-size="12">risk score over a 300 s window</text>
+    </g>
+    <g transform="translate(290,338)">
+      <rect width="256" height="80" rx="9" class="chip"/>
+      <text x="14" y="23" class="t" font-size="13.5" font-weight="600">Response</text>
+      <text x="14" y="42" class="t2 mono" font-size="10.5">{"no_of_person": 2,</text>
+      <text x="14" y="58" class="t2 mono" font-size="10.5"> "no_of_helmet_violation": 2,</text>
+      <text x="14" y="70" class="t2 mono" font-size="10.5"> "no_of_vest_violation": 1}</text>
+    </g>
+  </g>
+
+  <!-- ===== delivery row ===== -->
+  <text x="20" y="522" class="m" font-size="12.5" font-weight="600">Two ways to run it</text>
+  <g transform="translate(20,536)">
+    <rect width="586" height="196" rx="12" class="card"/>
+    <rect width="5" height="196" rx="2.5" style="fill:var(--pk)"/>
+    <text x="22" y="32" class="t" font-size="16" font-weight="700">Windows executable</text>
+    <text x="22" y="52" class="m mono" font-size="11.5">backend/run.py · backend/run.spec (PyInstaller)</text>
+    <text x="22" y="84" class="t2" font-size="13">One folder bundles the FastAPI server, the built React</text>
+    <text x="22" y="103" class="t2" font-size="13">app and best.pt. run.exe starts the server on</text>
+    <text x="22" y="122" class="t2 mono" font-size="12">http://127.0.0.1:8000</text>
+    <text x="22" y="141" class="t2" font-size="13">and opens the dashboard. No Python or Node.js needed.</text>
+    <text x="22" y="174" class="m" font-size="12">Tested on a second machine (report §7.6).</text>
+  </g>
+  <g transform="translate(634,536)">
+    <rect width="586" height="196" rx="12" class="card"/>
+    <rect width="5" height="196" rx="2.5" style="fill:var(--fe)"/>
+    <text x="22" y="32" class="t" font-size="16" font-weight="700">Browser demo</text>
+    <text x="22" y="52" class="m mono" font-size="11.5">web-demo/</text>
+    <text x="22" y="84" class="t2" font-size="13">The same best.pt, exported to ONNX, runs in the browser</text>
+    <text x="22" y="103" class="t2" font-size="13">with onnxruntime-web. The person rules and the 15 s</text>
+    <text x="22" y="122" class="t2" font-size="13">alert flow are ported line for line. It can also send</text>
+    <text x="22" y="141" class="t2" font-size="13">frames to a running backend instead.</text>
+    <text x="22" y="174" class="m" font-size="12">Same counts as the PyTorch backend on 32 of 34 test frames.</text>
+  </g>
+</svg>
+</body>
+</html>

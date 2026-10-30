@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPE Watch</title>
+<meta name="description" content="Real-time helmet and safety-vest violation detection. The trained YOLO26n model runs in your browser; no video leaves your device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 22a11 11 0 0 1 22 0z" /><rect x="3" y="22" width="26" height="4" rx="1.5" /></svg>
+    <div>
+      <h1>PPE Watch</h1>
+      <p class="tagline">Helmet and vest checks on a camera feed, once per second.</p>
+    </div>
+  </div>
+  <nav class="links">
+    <a href="https://github.com/R-PAl-AIhub/Tn-Impact-Hackathon">Source code</a>
+    <a href="https://github.com/R-PAl-AIhub/Tn-Impact-Hackathon/blob/main/docs/TN-IMPACT-2026-report.pdf">Project report</a>
+  </nav>
+</header>
+
+<main class="layout">
+  <section class="stage-col" aria-label="Camera">
+    <div class="toolbar">
+      <div class="segmented" role="radiogroup" aria-label="Video source">
+        <button type="button" role="radio" aria-checked="true" data-source="sample">Sample clip</button>
+        <button type="button" role="radio" aria-checked="false" data-source="webcam">Webcam</button>
+        <button type="button" role="radio" aria-checked="false" data-source="file">Your video or photo</button>
+      </div>
+      <input id="file-input" type="file" accept="video/*,image/*" hidden>
+      <button type="button" id="play-btn" class="ghost">Pause</button>
+    </div>
+
+    <div id="stage" class="stage" data-state="idle">
+      <div class="stage-inner">
+        <video id="video" playsinline muted loop crossorigin="anonymous" poster="media/rooftop-poster.jpg">
+          <source src="media/rooftop.webm" type="video/webm">
+          <source src="media/rooftop.mp4" type="video/mp4">
+        </video>
+        <img id="still" alt="" hidden>
+        <canvas id="overlay" aria-hidden="true"></canvas>
+        <div class="cam-tag"><span class="rec" aria-hidden="true"></span><span id="cam-label">Camera 1: sample clip</span></div>
+        <div id="banner" class="banner" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="show-boxes" checked> Draw detection boxes</label>
+      <label class="check"><input type="checkbox" id="auto-save"> Download evidence after 15 s, like the desktop app</label>
+      <details class="engine">
+        <summary>Detection engine: <span id="engine-name">in this browser</span></summary>
+        <p>The page runs the project's own <code>best.pt</code> weights, exported to ONNX, with the same 0.20 confidence threshold and the same person–PPE rules as the FastAPI backend.</p>
+        <p>To use the real backend instead, start it with <code>python backend/run.py</code> and enter its address.</p>
+        <form id="backend-form" class="backend-form">
+          <input id="backend-url" type="url" placeholder="http://127.0.0.1:8000" aria-label="Backend address">
+          <button type="submit" class="ghost">Use backend</button>
+          <button type="button" id="use-browser" class="ghost" hidden>Use browser model</button>
+        </form>
+      </details>
+    </div>
+  </section>
+
+  <aside class="panel-col" aria-label="Results">
+    <div class="counts">
+      <div class="count"><span id="n-person" class="num">–</span><span class="label">People in view</span></div>
+      <div class="count" data-kind="helmet"><span id="n-helmet" class="num">–</span><span class="label">No helmet</span></div>
+      <div class="count" data-kind="vest"><span id="n-vest" class="num">–</span><span class="label">No vest</span></div>
+    </div>
+
+    <div id="evidence" class="evidence" hidden>
+      <div class="evidence-head">
+        <h2>Violation evidence</h2>
+        <span id="timer" class="timer">0 s</span>
+      </div>
+      <img id="evidence-img" alt="First frame of the current violation">
+      <div class="meter" aria-hidden="true"><span id="meter-fill"></span></div>
+      <p class="hint">The first frame of a violation is kept. If it lasts 15 s, it becomes a report.</p>
+    </div>
+
+    <div class="log">
+      <h2>Reports</h2>
+      <ol id="log-list" class="log-list"></ol>
+      <p id="log-empty" class="empty">No reports yet. A report is created when a violation lasts 15 seconds.</p>
+    </div>
+
+    <p id="status" class="status" role="status">Loading the model (9.8 MB)…</p>
+  </aside>
+</main>
+
+<footer class="foot">
+  <p>Built by Team Data Minds, VIT Vellore, for TN-IMPACT 2026 (problem statement TNI26154). The project won 3rd place.
+  Video is processed on your device and is never uploaded.</p>
+</footer>
+
+<canvas id="work" hidden></canvas>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.wasm.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

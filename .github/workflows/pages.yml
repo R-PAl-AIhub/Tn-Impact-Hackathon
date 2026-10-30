@@ -1,0 +1,27 @@
+name: Publish browser demo
+
+on:
+  push:
+    branches: [main]
+    paths: ["web-demo/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy web-demo to the gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web-demo
+          publish_branch: gh-pages
+          force_orphan: true
+          enable_jekyll: false
+          user_name: RATUL PAL
+          user_email: ratulsoma2006@gmail.com
+          commit_message: Publish browser demo
